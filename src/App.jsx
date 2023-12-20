@@ -43,14 +43,17 @@ const CityExplorer = () => {
       setMapImage(mapUrl);
 
       // Fetch weather data from your Express server
-      const weatherResponse = await axios.get(`https://lab-07.onrender.com/weather` , {
+      const weatherResponse = await axios.get(
+        `https://lab-07.onrender.com/weather`
+        
+         , {
         params: {
           searchQuery: cityName,
           lat: firstLocation.lat,
           lon: firstLocation.lon,
         },
       });
-
+console.log(weatherResponse);
       setWeatherData(weatherResponse.data);
     } catch (error) {
       console.error('Error exploring city:', error);
