@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './CityExplorer.css'; // Import your CSS file
+import Weather from './Weather'; // Import the Weather component
+import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
+import './CityExplorer.css'; // Assuming this is your CSS file
 
 const CityExplorer = () => {
   const [cityName, setCityName] = useState('');
   const [locationData, setLocationData] = useState(null);
+  const [weatherData, setWeatherData] = useState(null);
   const [mapImage, setMapImage] = useState('');
   const [error, setError] = useState(null);
 
@@ -14,48 +17,44 @@ const CityExplorer = () => {
 
   const exploreCity = async () => {
     try {
-      // Reset error state
-      setError(null);
+      setError(null); // Reset error state
 
-      const response = await axios.get(
+      // Fetch location data from LocationIQ
+      const locationResponse = await axios.get(
         'https://us1.locationiq.com/v1/search.php',
         {
           params: {
-            key: 'pk.d412df6ffd1d3aaabcda549b559fe485',
+            key: 'pk.d412df6ffd1d3aaabcda549b559fe485', // Replace with your actual API key
             q: cityName,
             format: 'json',
           },
         }
       );
 
-      const firstLocation = response.data[0];
-
+      const firstLocation = locationResponse.data[0];
       setLocationData({
         displayName: firstLocation.display_name,
         latitude: firstLocation.lat,
         longitude: firstLocation.lon,
       });
 
-      // Fetch map image
-      // const mapResponse = await axios.get(
-      //   'https://maps.locationiq.com/v3/staticmap',
-      //   {
-      //     params: {
-      //       key: 'pk.d412df6ffd1d3aaabcda549b559fe485',
-      //       center: `${firstLocation.lat},${firstLocation.lon}`,
-      //       zoom: 12,
-      //       format: 'png',
-      //     },
-      //   }
-      // );
+      // Construct map image URL
+      const mapUrl = `http://maps.locationiq.com/v3/staticmap?key=pk.d412df6ffd1d3aaabcda549b559fe485&center=${firstLocation.lat},${firstLocation.lon}`;
+      setMapImage(mapUrl);
 
-const mapUrl = `http://maps.locationiq.com/v3/staticmap?key=pk.d412df6ffd1d3aaabcda549b559fe485&center=${firstLocation.lat},${firstLocation.lon}`
+      // Fetch weather data from your Express server
+      const weatherResponse = await axios.get(`http://localhost:3001/weather`, {
+        params: {
+          searchQuery: cityName,
+          lat: firstLocation.lat,
+          lon: firstLocation.lon,
+        },
+      });
 
-      setMapImage(mapUrl); // Set the map image URL
+      setWeatherData(weatherResponse.data);
     } catch (error) {
       console.error('Error exploring city:', error);
-
-      // Handle API error
+      // Update error handling for both API calls
       if (error.response) {
         setError({
           statusCode: error.response.status,
@@ -91,24 +90,20 @@ const mapUrl = `http://maps.locationiq.com/v3/staticmap?key=pk.d412df6ffd1d3aaab
       {locationData && (
         <div className="location-info">
           <h2>Location Information</h2>
-          <p>
-            <strong>City:</strong> {locationData.displayName}
-          </p>
-          <p>
-            <strong>Latitude:</strong> {locationData.latitude}
-          </p>
-          <p>
-            <strong>Longitude:</strong> {locationData.longitude}
-          </p>
+          <p><strong>City:</strong> {locationData.displayName}</p>
+          <p><strong>Latitude:</strong> {locationData.latitude}</p>
+          <p><strong>Longitude:</strong> {locationData.longitude}</p>
         </div>
       )}
 
-       {mapImage && ( 
+      {mapImage && (
         <div className="map-container">
           <h2>City Map</h2>
           <img src={mapImage} alt="City Map" />
         </div>
-      )} 
+      )}
+
+      {weatherData && <Weather forecasts={weatherData} />} {/* Render Weather component */}
     </div>
   );
 };
