@@ -43,7 +43,7 @@ const CityExplorer = () => {
       setMapImage(mapUrl);
 
       // Fetch weather data from your Express server
-      const weatherResponse = await axios.get(`https://lab-07.onrender.com:3001/weather` , {
+      const weatherResponse = await axios.get(`https://lab-07.onrender.com/weather` , {
         params: {
           searchQuery: cityName,
           lat: firstLocation.lat,
